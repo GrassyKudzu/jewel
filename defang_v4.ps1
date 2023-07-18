@@ -16,11 +16,25 @@ function Defang-Url {
     return $url
 }
 
+function Modify-Protocol {
+    param(
+        [string]$url
+    )
+
+    $url = $url -replace '^http://', 'hxxp://'
+    $url = $url -replace '^https://', 'hxxps://'
+    $url = $url -replace '^ftp://', 'fxp://'
+    $url = $url -replace '^file://', 'fxxe://'
+
+    return $url
+}
+
 if ($args.Length -ne 1) {
     Write-Host "Usage: powershell script.ps1 <URL>"
     exit 1
 }
 
 $normalUrl = $args[0]
-$defangedUrl = Defang-Url -url $normalUrl
-Write-Host "DEFANGED URL: $defangedUrl"
+$safeUrl = Modify-Protocol -url $normalUrl
+$defangedUrl = Defang-Url -url $safeUrl
+Write-Host "SAFE DEFANGED URL: $defangedUrl"
