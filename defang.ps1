@@ -1,39 +1,51 @@
-function Defang-URL {
+function Defang-Url {
     param (
-        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
-        [string]$URL
+        [string]$url
     )
 
-    # Replace colon (:) with textual representation (colon)
-    $defangedURL = $URL -replace ':', '(:)'
+    $periodCount = $url.Split('.').Length - 1
+    if ($periodCount -eq 1) {
+        $url = $url -replace '\.', '[.]'
+    }
+    elseif ($periodCount -eq 2) {
+        $firstPeriodIndex = $url.IndexOf('.')
+        $secondPeriodIndex = $url.IndexOf('.', $firstPeriodIndex + 1)
 
-    # Replace dot (.) with textual representation (dot)
-    $defangedURL = $defangedURL -replace '\.', '(dot)'
+        if ($firstPeriodIndex -ne -1 -and $secondPeriodIndex -ne -1) {
+            $url = $url.Substring(0, $firstPeriodIndex) + '[.' + $url.Substring($firstPeriodIndex + 1, $secondPeriodIndex - $firstPeriodIndex - 1) + '.]' + $url.Substring($secondPeriodIndex + 1)
+        }
+    }
 
-    # Replace slashes (/) with textual representation (slash)
-    $defangedURL = $defangedURL -replace '/', '/'
-
-    # Replace square brackets with textual representations
-    $defangedURL = $defangedURL -replace '\[', '['
-    $defangedURL = $defangedURL -replace '\]', ']'
-
-    return $defangedURL
+    return $url
 }
 
-# Check if there are command-line arguments
-if ($args.Count -gt 0) {
-    $originalURL = $args[0]
-}
-else {
-    # If no command-line arguments, read from clipboard
-    $originalURL = Get-Clipboard
+function Modify-Protocol {
+    param (
+        [string]$url
+    )
+
+    if ($url -match '^http://') {
+        $url = $url -replace '^http://', 'hxxp://'
+    }
+    elseif ($url -match '^https://') {
+        $url = $url -replace '^https://', 'hxxps://'
+    }
+    elseif ($url -match '^ftp://') {
+        $url = $url -replace '^ftp://', 'fxp://'
+    }
+    elseif ($url -match '^file://') {
+        $url = $url -replace '^file://', 'fxxe://'
+    }
+
+    return $url
 }
 
-# Check if the clipboard contains a URL
-if ([string]::IsNullOrWhiteSpace($originalURL)) {
-    Write-Host "No URL found in the clipboard."
+if ($args.Length -ne 1) {
+    Write-Host "Usage: powershell script.ps1 <URL>"
+    exit 1
 }
-else {
-    $defangedURL = Defang-URL -URL $originalURL
-    Write-Host "Defanged URL: $defangedURL"
-}
+
+$normalUrl = $args[0]
+$safeUrl = Modify-Protocol -url $normalUrl
+$defangedUrl = Defang-Url -url $safeUrl
+Write-Host "SAFE DEFANGED URL: $defangedUrl"
