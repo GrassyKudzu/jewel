@@ -1,15 +1,18 @@
 function Defang-Url {
-    param(
+    param (
         [string]$url
     )
 
-    $firstPeriodIndex = $url.IndexOf('.')
-    if ($firstPeriodIndex -ne -1) {
-        $url = $url.Substring(0, $firstPeriodIndex) + '[.' + $url.Substring($firstPeriodIndex + 1)
+    $periodCount = $url.Split('.').Length - 1
+    if ($periodCount -eq 1) {
+        $url = $url -replace '\.', '[.]'
+    }
+    elseif ($periodCount -eq 2) {
+        $firstPeriodIndex = $url.IndexOf('.')
+        $secondPeriodIndex = $url.IndexOf('.', $firstPeriodIndex + 1)
 
-        $secondPeriodIndex = $url.IndexOf('.', $firstPeriodIndex + 2)
-        if ($secondPeriodIndex -ne -1) {
-            $url = $url.Substring(0, $secondPeriodIndex) + '.]' + $url.Substring($secondPeriodIndex + 1)
+        if ($firstPeriodIndex -ne -1 -and $secondPeriodIndex -ne -1) {
+            $url = $url.Substring(0, $firstPeriodIndex) + '[.' + $url.Substring($firstPeriodIndex + 1, $secondPeriodIndex - $firstPeriodIndex - 1) + '.]' + $url.Substring($secondPeriodIndex + 1)
         }
     }
 
@@ -17,14 +20,22 @@ function Defang-Url {
 }
 
 function Modify-Protocol {
-    param(
+    param (
         [string]$url
     )
 
-    $url = $url -replace '^http://', 'hxxp://'
-    $url = $url -replace '^https://', 'hxxps://'
-    $url = $url -replace '^ftp://', 'fxp://'
-    $url = $url -replace '^file://', 'fxxe://'
+    if ($url -match '^http://') {
+        $url = $url -replace '^http://', 'hxxp://'
+    }
+    elseif ($url -match '^https://') {
+        $url = $url -replace '^https://', 'hxxps://'
+    }
+    elseif ($url -match '^ftp://') {
+        $url = $url -replace '^ftp://', 'fxp://'
+    }
+    elseif ($url -match '^file://') {
+        $url = $url -replace '^file://', 'fxxe://'
+    }
 
     return $url
 }
