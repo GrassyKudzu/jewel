@@ -1,13 +1,14 @@
 import sys
 
 def defang_url(url):
-    first_period_index = url.find('.')
-    if first_period_index != -1:
-        url = url[:first_period_index] + '[.' + url[first_period_index + 1:]
+    if url.count('.') == 1:
+        url = url.replace('.', '[.]')
+    elif url.count('.') == 2:
+        first_period_index = url.find('.')
+        second_period_index = url.find('.', first_period_index + 1)
 
-        second_period_index = url.find('.', first_period_index + 2)
-        if second_period_index != -1:
-            url = url[:second_period_index] + '.]' + url[second_period_index + 1:]
+        if first_period_index != -1 and second_period_index != -1:
+            url = url[:first_period_index] + '[.' + url[first_period_index + 1:second_period_index] + '.]' + url[second_period_index + 1:]
 
     return url
 
