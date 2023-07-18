@@ -1,2 +1,2 @@
-# jewel
-Public Repo of MJ Harmon
+# Emerald 
+# MIT Licensed Repository
