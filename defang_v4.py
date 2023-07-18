@@ -1,26 +1,21 @@
-import argparse
-import pyperclip
+import sys
 
 def defang_url(url):
-    defanged_url = url.replace(":", "x").replace(".", "[.]")
-    return "h" + defanged_url
+    first_period_index = url.find('.')
+    if first_period_index != -1:
+        url = url[:first_period_index] + '[.' + url[first_period_index + 1:]
 
-def get_input_url():
-    parser = argparse.ArgumentParser(description="DEFANG a URL or read from the clipboard.")
-    parser.add_argument("url", nargs="?", help="URL to DEFANG (optional, will use clipboard if not provided)")
-    args = parser.parse_args()
+        second_period_index = url.find('.', first_period_index + 2)
+        if second_period_index != -1:
+            url = url[:second_period_index] + '.]' + url[second_period_index + 1:]
 
-    if args.url:
-        return args.url.strip()
-    else:
-        clipboard_content = pyperclip.paste()
-        if clipboard_content:
-            return clipboard_content.strip()
-        else:
-            print("No URL provided and clipboard is empty.")
-            exit(1)
+    return url
 
 if __name__ == "__main__":
-    normal_url = get_input_url()
+    if len(sys.argv) != 2:
+        print("Usage: python script.py <URL>")
+        sys.exit(1)
+
+    normal_url = sys.argv[1]
     defanged_url = defang_url(normal_url)
     print("DEFANGED URL:", defanged_url)
